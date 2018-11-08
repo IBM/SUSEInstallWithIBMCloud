@@ -1,0 +1,4 @@
+PXE Boot Menu
+
+1. Hard Drive
+2. Install @image_title@

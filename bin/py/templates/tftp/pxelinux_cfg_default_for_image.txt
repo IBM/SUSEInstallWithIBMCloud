@@ -1,0 +1,11 @@
+implicit 0
+prompt 1
+timeout 30
+default 2
+display bios/x86/@image_name@/pxelinux.cfg/boot.msg
+
+label 1
+  localboot 0
+label 2
+  kernel linux
+  append initrd=initrd showopts autoyast=http://@bootserverIP@/autoyast/ install=http://@bootserverIP@/@image_name@ Keytable=en-us ssh.key=http://@bootserverIP@/id_rsa.pub
