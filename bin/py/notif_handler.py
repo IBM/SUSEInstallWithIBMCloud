@@ -59,14 +59,11 @@ class NotificationHandler(BaseHTTPRequestHandler):
                                 hostname = params['hostname']
                                 
                                 print("Received notification from '%s' that first stage of OS installation completed.  " % hostname)
-                                if self.handleInstallationCompleted(hostname):
-                                    print("Processed notification from '%s' successfully" % hostname)
-                                else:
-                                    print("Failed to process notification from '%s'" % hostname)
+                                self.handleInstallationCompleted(hostname)
                         except:
                             print( "Failed parsing the parameters: %s" % self.path)
                             traceback.print_exc(file=sys.stdout)
-                            self.send_error(400, "Invalid parameter")
+                            self.send_error(500, "Unexpected error occurred")
                 else:
                     self.send_error(400, "Invalid parameter")
             elif self.path.startswith("/shutdown"):
@@ -93,13 +90,15 @@ class NotificationHandler(BaseHTTPRequestHandler):
                 if dhcpConf.save():
                     print("\nChanges saved in %s\n" % dhcpConf.getFilename())
                     restartDHCP()
-                    success = True
             else:
                 print("DHCP configuration for host '%s' not found." % hostname)
+            success = True
+            print("Processed notification from '%s' successfully" % hostname)
             self.returnAckJson()
         except:
             print("Failure to handle event from: %s" % hostname)
             traceback.print_exc(file=sys.stdout)
+            self.send_error(400, "Invalid parameter")
 
         # Check if there are any more server to wait for.
         serversList = dhcpGroup.getChildren(DhcpConfEntryType.Host)
