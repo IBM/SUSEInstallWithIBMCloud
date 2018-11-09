@@ -37,6 +37,7 @@ class Templates:
         if outFile is None:
             raise Exception("No out file specified.")
         
+        outStream = None
         try:
             with open(outFile, "w") as outStream:
                 Templates.mergeToStream(template, outStream, vars, extraVars, varIdentifier)

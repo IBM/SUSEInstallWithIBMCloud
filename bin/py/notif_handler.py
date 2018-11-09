@@ -11,19 +11,16 @@ from dhcp_conf_helper import DhcpConfEntry, DhcpConfEntryType, DhcpConfHelper
 
 # This class will handles any incoming requests comming from the bare metals installing SUSE
 class NotificationHandler(BaseHTTPRequestHandler):
-    _dhcpConf = None
-    _dhcpGroup = None
+    _dhcpConfFilename = '/etc/dhcp/dhcpd.conf'
     _server = None
 
     @classmethod
     def setServer(cls, server):
         cls._server = server
+
     @classmethod
-    def setDhcpConf(cls, dhcpConf):
-        cls._dhcpConf = dhcpConf
-    @classmethod
-    def setDhcpGroup(cls, dhcpGroup):
-        cls._dhcpGroup = dhcpGroup
+    def setDhcpConfFilename(cls, filename):
+        cls._dhcpConfFilename = filename
     
     def shutdownHandler(self):
         stopServerThread = threading.Thread(target=self._server.shutdown)
@@ -62,24 +59,10 @@ class NotificationHandler(BaseHTTPRequestHandler):
                                 hostname = params['hostname']
                                 
                                 print("Received notification from '%s' that first stage of OS installation completed.  " % hostname)
-                                try:
-                                    if self._dhcpGroup.removeChild(DhcpConfEntryType.Host, hostname):
-                                        print("DHCP configuration for host '%s' removed." % hostname)
-                                        if self._dhcpConf.save():
-                                            print("\nChanges saved in %s\n" % self._dhcpConf.getFilename())
-                                            restartDHCP()
-                                    else:
-                                        print("DHCP configuration for host '%s' not found." % hostname)
-                                    self.returnAckJson()
-                                except:
-                                    print("Failure to handle event from: %s" % hostname)
-                                    traceback.print_exc(file=sys.stdout)
-
-                                # Check if there are any more server to wait for.
-                                serversList = self._dhcpGroup.getChildren(DhcpConfEntryType.Host)
-                                if serversList is None or len(serversList) == 0:
-                                    print("No more hosts to wait for.  Stopping the listener.")
-                                    self.shutdownHandler()                           
+                                if self.handleInstallationCompleted(hostname):
+                                    print("Processed notification from '%s' successfully" % hostname)
+                                else:
+                                    print("Failed to process notification from '%s'" % hostname)
                         except:
                             print( "Failed parsing the parameters: %s" % self.path)
                             traceback.print_exc(file=sys.stdout)
@@ -98,7 +81,38 @@ class NotificationHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         self.send_error(405,'POST not supported: %s' % self.path)
         return            
-            
+
+    def handleInstallationCompleted(self, hostname):
+        dhcpConf = DhcpConfHelper(self._dhcpConfFilename)
+        dhcpGroup = dhcpConf.getGroup()
+        success = False
+
+        try:
+            if dhcpGroup.removeChild(DhcpConfEntryType.Host, hostname):
+                print("DHCP configuration for host '%s' removed." % hostname)
+                if dhcpConf.save():
+                    print("\nChanges saved in %s\n" % dhcpConf.getFilename())
+                    restartDHCP()
+                    success = True
+            else:
+                print("DHCP configuration for host '%s' not found." % hostname)
+            self.returnAckJson()
+        except:
+            print("Failure to handle event from: %s" % hostname)
+            traceback.print_exc(file=sys.stdout)
+
+        # Check if there are any more server to wait for.
+        serversList = dhcpGroup.getChildren(DhcpConfEntryType.Host)
+
+        # Check if there are any servers left to wait for.
+        if serversList is None or len(serversList) == 0:
+            print("No more hosts to wait for.  Stopping the listener.")
+            self.shutdownHandler()
+
+        # Return the status of the processing
+        return success
+                               
+    
 # server = None
 
 # try:

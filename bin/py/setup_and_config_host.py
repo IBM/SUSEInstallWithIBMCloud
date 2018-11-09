@@ -25,7 +25,7 @@ def create_parser(progName=os.environ[PROG_ENV_VAR] if PROG_ENV_VAR in os.enviro
     parser.add_argument("-c", "--config", metavar="YAML_CONF", required=True, help="the yaml configuration file")
     parser.add_argument("--sl-user", metavar="USER", help="SoftLayer username (or environment variables SL_USER and SL_USERNAME)")
     parser.add_argument("--sl-apikey", metavar="KEY", help="SoftLayer API key (or environment variable SL_APIKEY and SL_API_KEY)")
-    parser.add_argument("--ip", dest="bootServerIP", metavar="KEY", help="Bootserver IP to use. If not specified the current IP is used.")
+    parser.add_argument("--ip", dest="bootServerIP", metavar="IP", help="Bootserver IP to use. If not specified the current IP is used.")
 
     subparsers = parser.add_subparsers(title='Sub commands')
 
@@ -137,8 +137,7 @@ def runListener(bootServerListenPort, dhcpConf, dhcpGroup):
         server = HTTPServer(('', bootServerListenPort), NotificationHandler)
         print("Started listener on port %s and waiting for servers' responses." % bootServerListenPort)
         
-        NotificationHandler.setDhcpConf(dhcpConf)
-        NotificationHandler.setDhcpGroup(dhcpGroup)
+        NotificationHandler.setDhcpConfFilename(dhcpConf.getFilename())
         NotificationHandler.setServer(server)
 
         # Wait forever for incoming http requests

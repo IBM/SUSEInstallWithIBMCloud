@@ -196,6 +196,12 @@ class DhcpConfHelper:
     def getRootEntry(self):
         return self.top
     
+    def getSharedNetworks(self):
+        return self.top.getFirstChild(DhcpConfEntryType.Shared_Network)
+    
+    def getGroup(self):
+        return self.top.findChild(DhcpConfEntryType.Group)
+
     @staticmethod
     def fromFile(confFile):
         return DhcpConfHelper().readFile(confFile)

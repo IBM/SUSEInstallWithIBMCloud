@@ -1,6 +1,6 @@
 #!/bin/bash
 
-THIS_DIR="$(dirname $)"
+THIS_DIR="$(dirname $0)"
 
 PYTHON="$(which python)"
 [ $? -ne 0 ] && echo -e "\nERROR: python not found.\n" && exit 1
