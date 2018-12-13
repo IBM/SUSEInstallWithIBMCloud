@@ -64,10 +64,10 @@ images:
 machines:
   - tag: kvm
     image: SLE12_SP3
-    yast_template: yast/autoyast_kvmhost.xml
+    yast_template: autoyast_kvmhost.xml     # In the <root_dir>/yast_templates folder
   - tag: compute
     image: SLE12_SP2
-    yast_template: yast/autoyast_compute.xml
+    yast_template: autoyast_compute.xml     # In the <root_dir>/yast_templates folder
 ```
 
 It first specifies the directories for TFTP boot and HTTP files:
@@ -138,10 +138,10 @@ Finally, it defines the "machine" types section, based on SL tags, and how each 
 machines:
   - tag: kvm
     image: SLE12_SP3
-    yast_template: yast/autoyast_kvmhost.xml
+    yast_template: autoyast_kvmhost.xml     # In the <root_dir>/yast_templates folder
   - tag: compute
     image: SLE12_SP2
-    yast_template: yast/autoyast_compute.xml
+    yast_template: autoyast_compute.xml     # In the <root_dir>/yast_templates folder
 ```
 
 ## Running the scripts
