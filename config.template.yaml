@@ -27,13 +27,13 @@ images:
 machines:
   - tag: kvm
     image: SLE12_SP3
-    yast_template: yast/autoyast_kvmhost.xml
+    yast_template: autoyast_kvmhost.xml     # In the <root_dir>/yast_templates folder
     post_install_scripts:
       - /scripts/kvm_post_inst1.sh
       - /scripts/kvm_post_inst2.sh
   - tag: compute
     image: SLE12_SP2
-    yast_template: yast/autoyast_compute.xml
+    yast_template: autoyast_compute.xml     # In the <root_dir>/yast_templates folder
     post_install_scripts:
       - /scripts/compute_post_inst1.sh
       - /scripts/compute_post_inst2.sh
