@@ -2,30 +2,6 @@ import os
 import binascii
 import struct
 import socket
-from aenum import Enum
-
-class BaseEnum(Enum):
-    def __str__(self):
-        return self.value
-    def __repr__(self):
-        return self.value
-    @classmethod
-    def getType(cls,value):
-        for _, member in cls.__members__.items():
-            if member.value == value:
-                return member
-        raise Exception("Unknown enum for class %s: %s" % (cls.__name__, value) )
-    @classmethod
-    def getTypes(cls):
-        """
-        Returns a list of strings with the values of the enums
-        
-         @rtype list: list with the possible values
-        """ 
-        result = []
-        for _, member in cls.__members__.items():
-            result.append(member.value)
-        return result
 
 def tokenize(line):
     tokens = line.split(' ')

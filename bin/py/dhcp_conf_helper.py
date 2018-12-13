@@ -1,5 +1,6 @@
 from collections import Sequence
-from utils import tokenize, stringToFile, BaseEnum
+from utils import tokenize, stringToFile
+from baseobj import BaseEnum
 
 class DhcpConfEntryType(BaseEnum):
     """

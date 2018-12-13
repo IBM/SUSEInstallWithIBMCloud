@@ -3,7 +3,7 @@ conf:
   tftp_boot_dir: /var/lib/tftpboot
   http_root_dir: /var/www/html
 vlan: # One of two below are needed, either VLAN name of VLAN id
-  SAP Cloud
+  #SAP Cloud
     name: Admin
     #id: 1234567
 images:

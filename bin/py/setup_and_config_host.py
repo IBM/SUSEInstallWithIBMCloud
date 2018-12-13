@@ -384,10 +384,11 @@ def prepareHosts(args):
         for hostname in hostnames:
             device = deviceInfo[hostname]
             # We get the info on the reserved ip and its subnet
-            ip,subnet = args.slHelper.findIpInfoByNoteInVlan(args.vlan, hostname)
+            ipAddr,subnet = args.slHelper.findIpInfoByNoteInVlan(args.vlan, hostname)
             # Get the machine conf (image to use, etc)
             machineConf = getMachineConfForDevice(args.cfg, device)
-
+            # Get the IP address value from the IP address
+            ip = ipAddr.value if ipAddr else None
             if ip and subnet:
                 print("Hostname '%s': Reserved IP is %s and subnet %s/%s" % (hostname, ip, subnet.network, subnet.cidr))
                 # Add the host's subnet if not already in the DHCP config
