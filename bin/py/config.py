@@ -48,6 +48,7 @@ class Config:
             raise Exception("No 'machines' section found in config: %s" % filename )
         
         self.templatesDir = os.path.dirname(os.path.realpath(__file__)) + '/templates/'
+        self.yastTemplatesDir = os.path.abspath(os.path.dirname(os.path.realpath(__file__)) + "/../../yast_templates" )
         self.baseVars = { 'bootserverIP': bootserverIP, 'http_root_dir': self.httpRootDir }
         self.images = {}
         self.machines = {}
@@ -161,7 +162,7 @@ class Config:
 
     def generateAutoyastFile(self, autoyastTemplate, autoyastOutFilename, vars):
         outFile = "%s/autoyast/%s" % (self.httpRootDir, autoyastOutFilename)
-        Templates.mergeToFile(self.templatesDir + autoyastTemplate, outFile, vars)
+        Templates.mergeToFile(self.yastTemplatesDir + autoyastTemplate, outFile, vars)
         return outFile
     
 # Reboot baremetal:
