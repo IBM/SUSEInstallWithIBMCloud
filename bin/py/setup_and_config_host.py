@@ -7,7 +7,7 @@ import SoftLayer
 from BaseHTTPServer import HTTPServer
 
 from utils import get_ip, ipToHex, restartDHCP, restartDevice
-from softlayer_helper import SoftLayerHelper, Device, DeviceType, SubnetType, SubnetAddressSpace, Subnet, VLAN
+from softlayer_helper import SoftLayerHelper, Device, Subnet, VLAN
 from dhcp_conf_helper import DhcpConfEntry, DhcpConfEntryType, DhcpConfHelper
 from templates import Templates
 from config import Config
@@ -102,7 +102,7 @@ def preProcessArgs(args):
     # First retrieve the mentioned devices and also any existing host entries in the dhcp config
     #
     args.slHelper = SoftLayerHelper()
-    args.vlan = args.slHelper.getVlan(args.cfg.vlanIdOrName, subnetType=SubnetType.Portable, addressSpace=SubnetAddressSpace.Private)
+    args.vlan = args.slHelper.getVlan(args.cfg.vlanIdOrName, subnetType=Subnet.Type.Portable, addressSpace=Subnet.AddressSpace.Private)
 
     if not args.vlan:
         print("\nERROR: Cannot find matching VLAN based on the configuration.")
@@ -329,7 +329,7 @@ def gatherDeviceInfo(cfg, slHelper, hostnames=None, tags=None):
     if hostnames:
         # Get all bare metal devices with the speficied hostnames.
         # However, a bare metal should not have multiple matching tags
-        devices = slHelper.getDevicesByHostname(hostnames, DeviceType.BareMetal)
+        devices = slHelper.getDevicesByHostname(hostnames, Device.Type.BareMetal)
         # Make sure that we can retrieve device information for all hostnames specified.
         if devices == None or len(hostnames) != len(devices):
             missingHostnames = hostnames[:]
@@ -342,7 +342,7 @@ def gatherDeviceInfo(cfg, slHelper, hostnames=None, tags=None):
     else: # i.e. tags
         # Get all bare metal devices that have the requested tags.
         # However, a bare metal should not more than one of our configured tags
-        devices = slHelper.getDevicesByTag(tags, deviceType=DeviceType.BareMetal)
+        devices = slHelper.getDevicesByTag(tags, deviceType=Device.Type.BareMetal)
         validateDeviceTags(valid_tags, devices)
     
     if devices and len(devices) > 0:
