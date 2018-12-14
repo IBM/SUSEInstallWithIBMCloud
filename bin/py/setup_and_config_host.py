@@ -8,7 +8,7 @@ from BaseHTTPServer import HTTPServer
 
 from utils import get_ip, ipToHex, restartDHCP, restartDevice
 from softlayer_helper import SoftLayerHelper, Device, Subnet, VLAN
-from dhcp_conf_helper import DhcpConfEntry, DhcpConfEntryType, DhcpConfHelper
+from dhcp_conf_helper import DhcpConfEntry, DhcpConfHelper
 from templates import Templates
 from config import Config
 from notif_handler import NotificationHandler
@@ -112,14 +112,14 @@ def preProcessArgs(args):
     # Setup the DHCP conf helper and related variables
     #
     args.dhcpConf = DhcpConfHelper('/etc/dhcp/dhcpd.conf')
-    args.dhcpSharedNet = args.dhcpConf.getRootEntry().getFirstChild(DhcpConfEntryType.Shared_Network)
-    args.dhcpGroup = args.dhcpConf.getRootEntry().findChild(DhcpConfEntryType.Group)
+    args.dhcpSharedNet = args.dhcpConf.getRootEntry().getFirstChild(DhcpConfEntry.Type.Shared_Network)
+    args.dhcpGroup = args.dhcpConf.getRootEntry().findChild(DhcpConfEntry.Type.Group)
 
     if args.dhcpSharedNet is None or args.dhcpGroup is None:
         print("\nERROR: The dhcpd.conf file does have the structure expected. Run the configuration on the bootserver again.")
         sys.exit(1)
 
-    args.hosts = args.dhcpGroup.getChildren(DhcpConfEntryType.Host)
+    args.hosts = args.dhcpGroup.getChildren(DhcpConfEntry.Type.Host)
     return args
 
 #
@@ -220,7 +220,7 @@ def generateSubnetEntry(cfg, bootServerIP, subnet):
         'subnet_gateway': subnet.gateway
     }
     subnetText = cfg.generateDhcpSubnetEntryText(vars)
-    return DhcpConfHelper().readText(subnetText).getRootEntry().getFirstChild(DhcpConfEntryType.Subnet)
+    return DhcpConfHelper().readText(subnetText).getRootEntry().getFirstChild(DhcpConfEntry.Type.Subnet)
 
 #
 # Function: addDhcpSubnetEntry
@@ -234,7 +234,7 @@ def addDhcpSubnetEntry(cfg, bootServerIP, subnet, dhcpSharedNet):
     subnetStr = "%s/%s" % (subnet.network, subnet.cidr)
 
     # If it is already there, nothing to do.
-    if dhcpSharedNet.contains(DhcpConfEntryType.Subnet, subnet.network):
+    if dhcpSharedNet.contains(DhcpConfEntry.Type.Subnet, subnet.network):
         print("Subnet %s already configured in DHCP configuration." % subnetStr)
         return False
 
@@ -258,7 +258,7 @@ def generateHostEntry(cfg, ip, device, machineConf):
     }
 
     hostText = cfg.generateDhcpHostEntryText(vars)
-    return DhcpConfHelper().readText(hostText).getRootEntry().getFirstChild(DhcpConfEntryType.Host)
+    return DhcpConfHelper().readText(hostText).getRootEntry().getFirstChild(DhcpConfEntry.Type.Host)
 
 #
 # Function: addDhcpHostEntry
@@ -270,7 +270,7 @@ def addDhcpHostEntry(dhcpGroup, hostEntry):
     """
 
     # Next we check if the host entry needs to be created.
-    if dhcpGroup.contains(DhcpConfEntryType.Host, hostEntry.name):
+    if dhcpGroup.contains(DhcpConfEntry.Type.Host, hostEntry.name):
         print("Entry for hostname '%s' already exists in DHCP cofiguration." % hostEntry.name)
         return False
     
@@ -286,7 +286,7 @@ def removeDhcpHostEntry(dhcpGroup, hostname):
     Removes the entry from the group section if present.
     Returns True or False, depending on whether the entry wass removed or not
     """
-    if dhcpGroup.removeChild(DhcpConfEntryType.Host, hostname):
+    if dhcpGroup.removeChild(DhcpConfEntry.Type.Host, hostname):
         print("DHCP configuration for host '%s' removed." % hostname)
         return True
     

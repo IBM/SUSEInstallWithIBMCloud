@@ -7,7 +7,7 @@ import threading
 import sys, traceback
 
 from utils import restartDHCP
-from dhcp_conf_helper import DhcpConfEntry, DhcpConfEntryType, DhcpConfHelper
+from dhcp_conf_helper import DhcpConfEntry, DhcpConfHelper
 
 # This class will handles any incoming requests comming from the bare metals installing SUSE
 class NotificationHandler(BaseHTTPRequestHandler):
@@ -85,7 +85,7 @@ class NotificationHandler(BaseHTTPRequestHandler):
         success = False
 
         try:
-            if dhcpGroup.removeChild(DhcpConfEntryType.Host, hostname):
+            if dhcpGroup.removeChild(DhcpConfEntry.Type.Host, hostname):
                 print("DHCP configuration for host '%s' removed." % hostname)
                 if dhcpConf.save():
                     print("\nChanges saved in %s\n" % dhcpConf.getFilename())
@@ -101,7 +101,7 @@ class NotificationHandler(BaseHTTPRequestHandler):
             self.send_error(400, "Invalid parameter")
 
         # Check if there are any more server to wait for.
-        serversList = dhcpGroup.getChildren(DhcpConfEntryType.Host)
+        serversList = dhcpGroup.getChildren(DhcpConfEntry.Type.Host)
 
         # Check if there are any servers left to wait for.
         if serversList is None or len(serversList) == 0:

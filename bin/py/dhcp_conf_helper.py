@@ -2,25 +2,24 @@ from collections import Sequence
 from utils import tokenize, stringToFile
 from baseobj import BaseEnum
 
-class DhcpConfEntryType(BaseEnum):
-    """
-    Enumeration for the types of sections processed in a dhcpd.conf file.
-    
-    Current sections supported:
-      - shared-network
-      - subnet
-      - group
-      - host
-    """
-    Shared_Network='shared-network' 
-    Subnet="subnet"
-    Host="host"
-    Group="group"
-
 class DhcpConfEntry:
+    class Type(BaseEnum):
+        """
+        Enumeration for the types of sections processed in a dhcpd.conf file.
+        
+        Current sections supported:
+        - shared-network
+        - subnet
+        - group
+        - host
+        """
+        Shared_Network='shared-network' 
+        Subnet="subnet"
+        Host="host"
+        Group="group"
     """
     Class to represent a section in the dhcp conf. The types of entries supported are
-    those defined by the DhcpConfEntryType enumeration, i.e. :
+    those defined by the DhcpConfEntry.Type enumeration, i.e. :
      - shared network
      - subnet
      - group
@@ -36,7 +35,7 @@ class DhcpConfEntry:
         """
         Constructor for DhcpConfEntry.
 
-         @type type: DhcpConfEntryType
+         @type type: DhcpConfEntry.Type
          @param type: the type of entry to create
 
          @type sectionName: str
@@ -108,7 +107,7 @@ class DhcpConfEntry:
         return False
 
     def getFirstChild(self, typeOrName): #, name=None):
-        if isinstance(typeOrName, DhcpConfEntryType):
+        if isinstance(typeOrName, DhcpConfEntry.Type):
             key = typeOrName.name
         elif isinstance(typeOrName, str):
             key = typeOrName
@@ -139,14 +138,14 @@ class DhcpConfEntry:
         return None
 
     def getChildren(self, typeOrName):
-        if isinstance(typeOrName, DhcpConfEntryType):
+        if isinstance(typeOrName, DhcpConfEntry.Type):
             key = typeOrName.name
         elif isinstance(typeOrName, str):
             key = typeOrName
         return self.children[key] if key in self.children else None
     
     def findChild(self, typeOrName, name=None):
-        if isinstance(typeOrName, DhcpConfEntryType):
+        if isinstance(typeOrName, DhcpConfEntry.Type):
             key = typeOrName.name
         elif isinstance(typeOrName, str):
             key = typeOrName
@@ -198,10 +197,10 @@ class DhcpConfHelper:
         return self.top
     
     def getSharedNetworks(self):
-        return self.top.getFirstChild(DhcpConfEntryType.Shared_Network)
+        return self.top.getFirstChild(DhcpConfEntry.Type.Shared_Network)
     
     def getGroup(self):
-        return self.top.findChild(DhcpConfEntryType.Group)
+        return self.top.findChild(DhcpConfEntry.Type.Group)
 
     @staticmethod
     def fromFile(confFile):
@@ -231,7 +230,7 @@ class DhcpConfHelper:
             raise Exception("Dont know how to process type '%s'. Expected either text or list of strings." % textOrList.__class__)
 
         currEntry = self.top
-        interestedIn = DhcpConfEntryType.getTypes() #[ 'subnet', 'shared-network', 'group', 'host' ]
+        interestedIn = DhcpConfEntry.Type.getTypes() #[ 'subnet', 'shared-network', 'group', 'host' ]
         
         for line in lines:
             # Remove anything passed a '#'
@@ -244,7 +243,7 @@ class DhcpConfHelper:
                 # Check first token to see if it a section start, i.e. keyword: shared-network, group, subnet, host,
                 if tokens[0] in interestedIn:
                     # Means a new section is starting. Now determine the type
-                    type = DhcpConfEntryType.getType(tokens[0])
+                    type = DhcpConfEntry.Type.getType(tokens[0])
                     if type is None:
                         raise Exception( "Dont know how to deal with this section '%s' of line: %s" % (tokens[0], line) )
                     # Check that the open brace, "{" is found in the line
