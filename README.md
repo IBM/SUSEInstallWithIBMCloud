@@ -11,3 +11,5 @@ Below is a high level explanation of the deployment steps that will be automated
 4 - Deploy SLES12 SP2 and SOC7 on all of the baremetal systems that will comprise the SOC OpenStack cluster.
 
 5 - Finalize the integration of SOC and SES so that it supports a SAP Cloud Platform Private Edition deployment.
+
+See [initial setup](initial_setup.md) on how the first steps and how to initiate the configuration and setup.

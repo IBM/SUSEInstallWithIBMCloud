@@ -1,0 +1,9 @@
+omapi-port 7911;
+
+shared-network BootServerNet {
+    # Subnets to deal with will go here
+} # shared network ends here
+
+group {
+    # Hosts to deploy OS will go here
+}

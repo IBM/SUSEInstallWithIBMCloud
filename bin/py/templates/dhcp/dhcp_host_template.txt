@@ -1,0 +1,5 @@
+  host @server_hostname@ {
+    hardware ethernet @server_mac_address@;
+    fixed-address @server_ip@;
+    filename "/bios/x86/@server_image@/pxelinux.0";
+  }

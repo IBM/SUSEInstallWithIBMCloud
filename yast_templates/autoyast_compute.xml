@@ -1,0 +1,342 @@
+<?xml version="1.0" ?>
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <add-on>
+    <add_on_products config:type="list"/>
+  </add-on>
+  <!-- Not sure if this section is needed. Maybe only the part with "loader_type" -->
+  <bootloader>
+    <global>
+      <append>resume=/dev/sda2 splash=silent quiet showopts</append>
+      <gfxmode>auto</gfxmode>
+      <hiddenmenu>false</hiddenmenu>
+      <os_prober>false</os_prober>
+      <terminal>gfxterm</terminal>
+      <timeout config:type="integer">8</timeout>
+      <xen_kernel_append>vga=gfx-1024x768x16</xen_kernel_append>
+      <boot_mbr config:type="boolean">true</boot_mbr>
+    </global>
+    <loader_type>grub2</loader_type>
+  </bootloader>
+  <general>
+    <ask-list config:type="list"/>
+    <mode>
+	  <!-- 
+	    Change this to be able to "stop" the installation and view before completing
+	    A value of "true" means that it would stop and a value of "false" means it
+	    would keep going with the installation.  Normally, we want it to be "false"
+	    for an unattended installation.
+	  -->
+      <confirm config:type="boolean">false</confirm>
+      <!--
+        Shuts down the machine after the first stage. So if you turn it on again, 
+        the machine boots and the second stage of the autoinstallation starts.
+      -->
+      <halt config:type="boolean">false</halt>
+      <!--
+        AutoYaST will run in the second stage too (after the partitioning, 
+        software and boot loader installation of the first stage)
+      -->
+      <second_stage config:type="boolean">true</second_stage>
+      <!--
+        If you set this to true, the machine will reboot at the very end of the 
+        installation (when everything is installed and configured at the end of 
+        the second stage).
+      -->
+      <final_reboot config:type="boolean">true</final_reboot>
+      <!--
+        We do not want to halt the machine once everything is done.
+      -->
+      <final_halt config:type="boolean">false</final_halt>
+      <!--
+        We do not want to force a reboot after stage one.
+      -->
+      <forceboot config:type="boolean">false</forceboot>
+    </mode>
+    <proposals config:type="list"/>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">true</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">true</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">true</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">true</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">true</import_gpg_key>
+    </signature-handling>
+    <storage>
+      <partition_alignment config:type="symbol">align_optimal</partition_alignment>
+      <start_multipath config:type="boolean">false</start_multipath>
+    </storage>
+  </general>
+  <!-- Adding section to update /etc/hosts to add one entry that of itself. -->
+<!--
+  <host>
+    <hosts config:type="list">
+      <hosts_entry>
+        <host_address>@target_ip@</host_address>
+        <names config:type="list">
+          <name>kvmhost.@target_domain@ kvmhost</name>
+        </names>
+      </hosts_entry>
+    </hosts>
+  </host>
+-->
+  <!-- Section for deploy_image.  What is this??? -->
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <!-- Section to disable firewall -->
+  <firewall>
+    <enable_firewall config:type="boolean">false</enable_firewall>
+    <start_firewall config:type="boolean">false</start_firewall>
+  </firewall>
+  <!-- Section to disable kdump -->
+  <kdump>
+    <add_crash_kernel config:type="boolean">false</add_crash_kernel>
+  </kdump>
+  <keyboard>
+    <keymap>english-us</keymap>
+  </keyboard>
+  <language>
+    <language>en_US</language>
+    <languages>en_US</languages>
+  </language>
+  <login_settings/>
+  <networking>
+    <dhcp_options>
+      <dhclient_client_id/>
+      <dhclient_hostname_option>AUTO</dhclient_hostname_option>
+    </dhcp_options>
+    <dns>
+      <hostname>@target_hostname@</hostname>
+      <resolv_conf_policy>auto</resolv_conf_policy>
+      <write_hostname config:type="boolean">false</write_hostname>
+      <!-- Entries from autoyast.xml from Mike missing from Dave's autoyast -->
+      <dhcp_hostname config:type="boolean">true</dhcp_hostname>
+      <domain>@target_domain@</domain>
+      <searchlist config:type="list">
+        <search>@target_domain@</search>
+      </searchlist>
+      <nameservers config:type="list">
+        <nameserver>8.8.8.8</nameserver>
+      </nameservers>
+    </dns>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>static</bootproto>
+        <device>eth0</device>
+        <startmode>auto</startmode>
+        <usercontrol>no</usercontrol>
+        <ipaddr>@target_ip@</ipaddr>
+        <mtu>9000</mtu>
+        <netmask>@subnet_netmask@</netmask>
+        <prefixlen>@subnet_net_prefix@</prefixlen>
+      </interface>
+    </interfaces>
+    <!-- Disable IPv6 -->
+    <ipv6 config:type="boolean">false</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+      <!-- Mike adding default routing to gateway -->
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>eth0</device>
+          <gateway>@subnet_gateway@</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
+    </routing>
+  </networking>
+  <nis>
+    <start_autofs config:type="boolean">false</start_autofs>
+    <start_nis config:type="boolean">false</start_nis>
+  </nis>
+  <!-- Adding NTP section to customize ntp config. -->
+  <ntp-client>
+    <ntp_policy>auto</ntp_policy>
+    <peers config:type="list">
+      <!-- Possible customization point to edit, add, remove ntp servers. -->
+      <peer>
+        <address>servertime.service.softlayer.com</address>
+        <comment/>
+        <options/>
+        <type>server</type>
+      </peer>
+      <peer>
+        <address>us.pool.ntp.org</address>
+        <comment/>
+        <options/>
+        <type>server</type>
+      </peer>
+    </peers>
+    <start_at_boot config:type="boolean">true</start_at_boot>
+    <start_in_chroot config:type="boolean">false</start_in_chroot>
+    <sync_interval config:type="integer">5</sync_interval>
+    <synchronize_time config:type="boolean">false</synchronize_time>
+  </ntp-client>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/sda</device>
+      <disklabel>gpt</disklabel>
+      <enable_snapshots config:type="boolean">false</enable_snapshots>
+      <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">vfat</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>umask=0002,utf8=true</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/boot/efi</mount>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">259</partition_id>
+          <partition_nr config:type="integer">1</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>auto</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">swap</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>defaults</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>swap</mount>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">130</partition_id>
+          <partition_nr config:type="integer">2</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>auto</size>
+        </partition>
+        <partition>
+          <create config:type="boolean">true</create>
+          <crypt_fs config:type="boolean">false</crypt_fs>
+          <filesystem config:type="symbol">ext4</filesystem>
+          <format config:type="boolean">true</format>
+          <fstopt>acl,user_xattr</fstopt>
+          <loop_fs config:type="boolean">false</loop_fs>
+          <mount>/</mount>
+          <mountby config:type="symbol">device</mountby>
+          <partition_id config:type="integer">131</partition_id>
+          <partition_nr config:type="integer">3</partition_nr>
+          <resize config:type="boolean">false</resize>
+          <size>max</size>
+        </partition>
+      </partitions>
+      <pesize/>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <!-- Adding a report section.  Can be modified if needed. -->
+  <report>
+    <errors>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </errors>
+    <messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </messages>
+    <warnings>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+    <yesno_messages>
+      <log config:type="boolean">true</log>
+      <show config:type="boolean">true</show>
+      <timeout config:type="integer">0</timeout>
+    </yesno_messages>
+  </report>
+  <!-- Adding the services section.  All services off, except for SSHD -->
+  <services-manager>
+    <default_target>multi-user</default_target>
+    <services>
+      <disable config:type="list"/>
+      <enable config:type="list">
+        <service>sshd</service>
+      </enable>
+    </services>
+  </services-manager>
+  <software>
+    <image/>
+    <install_recommended config:type="boolean">true</install_recommended>
+    <instsource/>
+<!--
+    <packages config:type="list">
+      <package>yast2-iscsi-lio-server</package>
+      <package>lio-utils</package>
+      <package>virt-top</package>
+      <package>autoyast2</package>
+    </packages>
+-->
+    <patterns config:type="list">
+      <pattern>Minimal</pattern>
+      <pattern>base</pattern>
+<!--
+      <pattern>kvm_server</pattern>
+      <pattern>kvm_tools</pattern>
+      <pattern>smt</pattern>
+      <pattern>x11</pattern>
+      <pattern>yast2</pattern>
+-->
+    </patterns>
+  </software>
+  <ssh_import>
+    <copy_config config:type="boolean">false</copy_config>
+    <import config:type="boolean">false</import>
+  </ssh_import>
+  <timezone>
+    <hwclock>UTC</hwclock>
+    <!-- Optionally we can can set the timezone -->
+    <timezone>America/Chicago</timezone>
+  </timezone>
+  <users config:type="list">
+    <user>
+      <encrypted config:type="boolean">@target_password_encrypted@</encrypted>
+      <fullname>root</fullname>
+      <gid>0</gid>
+      <home>/root</home>
+      <password_settings>
+        <expire/>
+        <flag/>
+        <inact/>
+        <max/>
+        <min/>
+        <warn/>
+      </password_settings>
+      <shell>/bin/bash</shell>
+      <uid>0</uid>
+      <user_password>@target_root_password@</user_password>
+      <username>root</username>
+    </user>
+  </users>
+  <scripts>
+    <chroot-scripts config:type="list">
+      <script>
+        <chrooted config:type="boolean">true</chrooted>
+        <filename>notifyBootserver.sh</filename>
+        <interpreter>shell</interpreter>
+        <source><![CDATA[
+while true; do
+  curl "http://@bootserver_ip@:@bootserver_listen_port@/installationCompleted?hostname=@target_hostname@"
+  RC=$?
+  if [ $RC -eq 0 ]; then
+    break
+  else
+    sleep 10
+  fi
+done
+]]>
+        </source>
+      </script>
+    </chroot-scripts>
+  </scripts>
+</profile>

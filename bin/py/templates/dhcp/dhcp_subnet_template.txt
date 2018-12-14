@@ -1,0 +1,7 @@
+   subnet @subnet_ip@ netmask @subnet_netmask@ {
+    option broadcast-address @subnet_broadcast@;
+    option routers @subnet_gateway@;
+    default-lease-time 600;
+    max-lease-time 7200;
+    next-server @bootServerIP@;
+  }

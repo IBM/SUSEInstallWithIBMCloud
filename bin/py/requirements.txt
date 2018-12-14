@@ -1,0 +1,3 @@
+aenum>=2.1.2
+PyYAML>=3.13
+SoftLayer>=5.4.4
