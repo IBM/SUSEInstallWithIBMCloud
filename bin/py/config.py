@@ -149,13 +149,13 @@ class Config:
         return True if machine and 'post_install_scripts' in machine else False
     
     def generateDownloadScripts(self, genDir):
-        self.expandTemplates(genDir, 'tftp/download_image.sh', genDir +"/download_image_{}.sh", 'name', self.images, 'image', self.baseVars )
+        self.expandTemplates(genDir, 'tftp/download_image.sh.template', genDir +"/download_image_{}.sh", 'name', self.images, 'image', self.baseVars )
     
     def generateConfigForTFTP(self, genDir):
         self.expandTemplates(genDir, 'tftp/pxelinux_cfg_default_for_image.txt', genDir +"/default_for_{}", 'name', self.images, 'image', self.baseVars)
         self.expandTemplates(genDir, 'tftp/boot_msg_for_image.txt', genDir +"/boot_msg_for_{}", 'name', self.images, 'image', self.baseVars)
-        self.expandTemplates(genDir, 'tftp/setup_tftp_for_image.sh', genDir +"/setup_tftp_for_{}.sh", 'name', self.images, 'image', self.baseVars)
-        Templates.mergeToFile(self.templatesDir + 'tftp/mount_image.sh', genDir + '/mount_image.sh', { })
+        self.expandTemplates(genDir, 'tftp/setup_tftp_for_image.sh.template', genDir +"/setup_tftp_for_{}.sh", 'name', self.images, 'image', self.baseVars)
+        Templates.mergeToFile(self.templatesDir + 'tftp/mount_image.sh.template', genDir + '/mount_image.sh', { })
 
     def generateDhcpSubnetEntryText(self, vars):
         return Templates.mergeToString(self.templatesDir + 'dhcp/dhcp_subnet_template.txt',vars)
