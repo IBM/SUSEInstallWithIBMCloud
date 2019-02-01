@@ -79,6 +79,9 @@ class Config:
                 vars[objectName+"_"+k] = item[k]
 
             Templates.mergeToFile(self.templatesDir + template, outFileMask.format(item[filenameProp]), vars )
+    
+    def getHttpRootDir(self):
+        return self.httpRootDir
     #
     # Get available image names
     #
