@@ -20,8 +20,8 @@ class MoreThanOneMatchFoundException(SoftLayerHelperException):
     """ Exception raised when more than one match found """
 
 class IpAddress(BaseObject, JsonSerializable):
-    """ 
-        Represents an ip address 
+    """
+        Represents an ip address
     """
     MASK = 'isNetwork, isBroadcast, isGateway, ipAddress, id, isReserved,virtualGuest,hardware,note,subnetId'
     class Status(BaseEnum):
@@ -62,7 +62,7 @@ class IpAddress(BaseObject, JsonSerializable):
             self.status = self.Status.Reserved
             self.type = self.Type.Reserved
         else:
-            try: 
+            try:
                 self.hostname = data['virtualGuest']['fullyQualifiedDomainName']
                 self.status = self.Status.In_Use
                 self.type = self.Type.VirtualDevice
@@ -105,7 +105,7 @@ class Subnet(BaseObject, JsonSerializable):
         else:
             self.cidr = Subnet.getPrefix(self.netmask)
         self.name = "{}/{}".format(self.network, self.cidr)
-        
+
         self.addressSpace = self.AddressSpace.getType(subnet['addressSpace']) if 'addressSpace' in subnet else None
         self.type = self.Type.getType(subnet['subnetType']) if 'subnetType' in subnet else None
 
@@ -127,6 +127,7 @@ class VLAN(BaseObject, JsonSerializable):
         self.id = detail['id']
         self.vlanNumber = detail['vlanNumber']
         self.dataCenter = detail['primaryRouter']['datacenter']['name']
+        self.primaryRouter = '.'.join(detail['primaryRouter']['fullyQualifiedDomainName'].split('.',2)[0:2])
 
         self.subnets = []
         for slSubnet in detail['subnets']:
@@ -151,11 +152,11 @@ class NetworkGateway(BaseObject, JsonSerializable):
             sample data:
             {
                 'privateVlanId': 2403029,            <-- self.privateVlanId
-                'publicIpv6AddressId': 117415697, 
+                'publicIpv6AddressId': 117415697,
                 'publicVlanId': 2403031,             <-- self.publicVlanId
                 'name': 'dal13-ded-1698663x1-01-a',  <-- self.name
-                'groupNumber': 1, 
-                'statusId': 1, 
+                'groupNumber': 1,
+                'statusId': 1,
                 'publicIpAddressId': 117415683,      <-- self.publicIP (as IP after looking it up using the id)
                 'accountId': 1698663,                <-- self.account
                 'networkSpace': 'BOTH',              <-- self.networkSpace
@@ -219,12 +220,12 @@ class SoftLayerHelper:
         if apikey is None:
             if 'SL_APIKEY' in os.environ:
                 userid = os.environ['SL_APIKEY']
-        
+
         if userid is None and apikey is None:
             client = SoftLayer.create_client_from_env()
         else:
             client = SoftLayer.create_client_from_env(userid, apikey)
-    
+
         return client
     @staticmethod
     def isAPIError_ObjNotFound(softLayerAPIError):
@@ -240,10 +241,10 @@ class SoftLayerHelper:
 
     def getClient(self):
         return self.client
-    
+
     def getDeviceById(self, id):
         return Device(self.hwmgr.get_hardware(id,mask=Device.MASK))
-    
+
     def getDeviceByHostname(self, hostname, deviceType=Device.Type.BareMetal, datacenter=None):
         devices = self.getDevicesByHostname([hostname], deviceType=deviceType, datacenter=datacenter)
 
@@ -253,7 +254,7 @@ class SoftLayerHelper:
             elif len(devices) > 1:
                 ids = []
                 for device in devices:
-                    ids.append(device.id) 
+                    ids.append(device.id)
                 raise Exception("More than one device found with hostname '%s'. Device ids: %s" % (hostname, ', '.join(ids)))
         return None
 
@@ -267,7 +268,7 @@ class SoftLayerHelper:
             hostnames = hostname
         else:
             raise Exception( "Unexpected type for 'hostname' parameter: %s" % hostname.__class__)
-        
+
         result = []
         # for deviceTag in tags:
         if deviceType == Device.Type.BareMetal or deviceType == Device.Type.Any:
@@ -319,7 +320,7 @@ class SoftLayerHelper:
                     result.append(Device(dev))
             # else:
             #     print("No results.")
-        return result if len(result) > 0 else None                    
+        return result if len(result) > 0 else None
 
 
     def getDevicesByTag(self, tag, deviceType=Device.Type.Any, datacenter=None):
@@ -332,7 +333,7 @@ class SoftLayerHelper:
             tags = tag
         else:
             raise Exception( "Unexpected type for 'tag' parameter: %s" % tag.__class__)
-        
+
         result = []
         # for deviceTag in tags:
         if deviceType == Device.Type.BareMetal or deviceType == Device.Type.Any:
@@ -393,7 +394,7 @@ class SoftLayerHelper:
             # else:
             #     print("No results.")
 
-        return result if len(result) > 0 else None                    
+        return result if len(result) > 0 else None
 
     def attachVlansToNetworkGateway(self, gatewayId, vlanIds, bypass):
         """
@@ -440,7 +441,7 @@ class SoftLayerHelper:
                 vlan = self.nwmgr.get_vlan(slVlans[0]['id']) if len(slVlans) else None
             else:
                 raise Exception( "Unexpected type for 'idOrName' parameter: %s" % idOrName.__class__ )
-            
+
             return VLAN(vlan, subnetType=subnetType, addressSpace=addressSpace) if vlan else None
         except SoftLayer.SoftLayerAPIError as e:
             if self.isAPIError_ObjNotFound(e):
@@ -508,7 +509,7 @@ class SoftLayerHelper:
             Returns True if the comment updated successfully or False otherwise.
 
             If the IP based on id does not exist, then an ObjectNotFoundException is raised.
- 
+
         """
         ip = {
             'id': ip_id,
@@ -562,7 +563,7 @@ class SoftLayerHelper:
 
     def findIpInfoByNoteInVlan(self, idNameOrVlan, note, subnetType=Subnet.Type.Any, addressSpace=Subnet.AddressSpace.Any):
         """
-            Searches for an ip in a vlan (by name,id or vlan object) based on its "comment" on particular subnet 
+            Searches for an ip in a vlan (by name,id or vlan object) based on its "comment" on particular subnet
             type (portable, private, etc) and particular address space (public, private, etc)
 
             Returns the IP and the subnet it is in.
@@ -621,8 +622,8 @@ class SoftLayerHelper:
         """
             Search for gateway appliances (vyattas) by the name prefix.
 
-            Returns an array containing the matching vyattas if at least one match found. 
-            
+            Returns an array containing the matching vyattas if at least one match found.
+
             Returns None if no maches found.
         """
         filter = None
@@ -630,7 +631,7 @@ class SoftLayerHelper:
             filter = {
                 'name': { 'operation': '^='+namePrefix}
             }
-        
+
         gateways = self.client['SoftLayer_Account'].getNetworkGateways(filter=filter,mask=NetworkGateway.MASK)
         result = []
         if gateways:
@@ -639,4 +640,3 @@ class SoftLayerHelper:
                 if namePrefix is None or gateway.name.startswith(namePrefix):
                     result.append(gateway)
         return result if len(result) > 0 else None
-
