@@ -102,7 +102,7 @@ def preProcessArgs(args):
     # First retrieve the mentioned devices and also any existing host entries in the dhcp config
     #
     args.slHelper = SoftLayerHelper()
-    args.vlan = args.slHelper.getVlan(args.cfg.vlanIdOrName, subnetType=Subnet.Type.Portable, addressSpace=Subnet.AddressSpace.Private)
+    args.vlan = args.slHelper.getVlan(args.cfg.vlanIdOrName[Config.VLAN_ADMIN], subnetType=Subnet.Type.Portable, addressSpace=Subnet.AddressSpace.Private)
 
     if not args.vlan:
         print("\nERROR: Cannot find matching VLAN based on the configuration.")

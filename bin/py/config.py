@@ -11,6 +11,12 @@ REQ_MACHINE_FIELDS = ['tag','image','yast_template']
 class Config:
     'Class to load and read from image and machine configuration'
 
+    VLAN_ADMIN = 'admin' 
+    VLAN_PUB_API = 'public_api' 
+    VLAN_CLOUD_SDN = 'cloud_sdn' 
+    VLAN_STORAGE_REPL = 'storage_repl' 
+    VLAN_STORAGE_CLIENT = 'storage_client'
+
     #
     # Validate dictionary object
     #
@@ -33,13 +39,23 @@ class Config:
         self.httpRootDir = data['conf']['http_root_dir']
 
         # Read data from the 'vlan' section
-        if 'vlan' not in data or ('name' not in data['vlan'] and 'id' not in data['vlan']):
+        if 'vlans' not in data:
+            print(data)
             raise Exception("No VLAN information found in config.")
-        # if 'name' not in data['vlan'] and 'id' not in data['vlan']
-        if 'id' in data['vlan']:
-            self.vlanIdOrName = data['vlan']['id']
-        elif 'name' in data['vlan']:
-            self.vlanIdOrName = data['vlan']['name']
+
+        self.vlanIdOrName = { }
+
+        # vlanNames = [self.VLAN_ADMIN, self.VLAN_PUB_API, self.VLAN_CLOUD_SDN, self.VLAN_STORAGE_REPL, self.VLAN_STORAGE_CLIENT]
+        # for vlan in vlanNames:
+        for vlan in [self.VLAN_ADMIN, self.VLAN_PUB_API, self.VLAN_CLOUD_SDN, self.VLAN_STORAGE_REPL, self.VLAN_STORAGE_CLIENT]:
+            if vlan not in data['vlans']:
+                raise Exception("No VLAN information for vlan '%s'." % vlan)
+            elif 'name' not in data['vlans'][vlan] and 'id' not in data['vlans'][vlan]:
+                raise Exception("VLAN information for vlan '%s' needs to have either the 'name' or 'id'." % vlan)
+            elif 'id' in data['vlans'][vlan]:
+                self.vlanIdOrName[vlan]= data['vlans'][vlan]['id']
+            else: #if 'name' in data['vlan']:
+                self.vlanIdOrName[vlan]= data['vlans'][vlan]['name']
 
         # Check if the 'images' and 'machines' sections are there in the config
         if 'images' not in data:
