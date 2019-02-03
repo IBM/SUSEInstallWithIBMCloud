@@ -48,7 +48,7 @@ yum install -y jq
 #
 # Setup some variables
 #
-PY_DIR="py"
+PY_DIR="${THIS_DIR}/py"
 
 #
 # Setup python
@@ -56,7 +56,7 @@ PY_DIR="py"
 # Update pip first
 pip install --upgrade pip
 # Install some python modules
-pip install -r ${PY_DIR}/requirement.txt
+pip install -r ${PY_DIR}/requirements.txt
 # pip install SoftLayer
 # pip install pyyaml
 # pip install aenum
@@ -117,13 +117,13 @@ fi
 #
 # Create the config files for downloading the SUSE ISO images
 #
-${PYTHON} ${THIS_DIR}/${PY_DIR}/generateConfig.py --genDir "${GEN_DIR}" --config "${CONFIG_FILE}" --scripts download
+${PYTHON} ${PY_DIR}/generateConfig.py --genDir "${GEN_DIR}" --config "${CONFIG_FILE}" --scripts download
 [ $? -ne 0 ] && echo "Error while generating download scripts" && exit 1
 
 #
 # Create the config files for TFTP server config
 #
-${PYTHON} ${THIS_DIR}/${PY_DIR}/generateConfig.py  --genDir "${GEN_DIR}" --config "${CONFIG_FILE}" --scripts tftp
+${PYTHON} ${PY_DIR}/generateConfig.py  --genDir "${GEN_DIR}" --config "${CONFIG_FILE}" --scripts tftp
 [ $? -ne 0 ] && echo "Error while generating the TFTP config files" && exit 1
 
 #
