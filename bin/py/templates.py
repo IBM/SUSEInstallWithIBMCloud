@@ -1,4 +1,5 @@
 import StringIO
+import ConfigParser
 
 def _getVars(line, varIdentifier="@"):
     lineVars = []
@@ -17,8 +18,10 @@ def _getVars(line, varIdentifier="@"):
 class Templates:
     """Class with static methods for handling simple template expansion """
 
+    DEFAULT_IDENTIFIER = "@"
+
     @staticmethod
-    def mergeToFile(template, outFile, vars, extraVars=None, varIdentifier="@"):
+    def mergeToFile(template, outFile, vars, extraVars=None, varIdentifier=DEFAULT_IDENTIFIER):
         """
         Merge the template into an output file.
 
@@ -46,7 +49,7 @@ class Templates:
                 outStream.close()
 
     @staticmethod
-    def mergeToString(template, vars, extraVars=None, varIdentifier="@"):
+    def mergeToString(template, vars, extraVars=None, varIdentifier=DEFAULT_IDENTIFIER):
         """
         Merge the template into a string and return that string.
 
@@ -70,7 +73,7 @@ class Templates:
         return result
 
     @staticmethod
-    def mergeToStream(template, outStream, vars, extraVars=None, varIdentifier="@"):
+    def mergeToStream(template, outStream, vars, extraVars=None, varIdentifier=DEFAULT_IDENTIFIER):
         """
         Merge the template into provided stream.  
         
@@ -98,12 +101,14 @@ class Templates:
         if extraVars:
             varsToUse.update(extraVars)
     
+        fpIn = None
+        
         try:
             with open(template, 'r') as fpIn:
                 for line in fpIn:
                     outline = line = line.rstrip()
                     lineVars = None
-                    lineVars = _getVars(outline)
+                    lineVars = _getVars(outline, varIdentifier)
 
                     if lineVars:
                         for var in lineVars:
@@ -115,6 +120,111 @@ class Templates:
                                     value = valueToUse
                             outline = outline.replace(token,value)
                     outStream.write("%s\n" % outline)
-        except:
+        finally:
             if fpIn:
                 fpIn.close()
+    
+    @staticmethod
+    def loadPropertyFile(propFile):
+        """
+        Load a property file in the form:
+
+          # This is a comment
+          PROP1=value1
+
+          # Another comment
+          PROP2=value2
+        """
+        f = None
+        
+        try:
+            with open(propFile) as f:
+                config = StringIO.StringIO()
+                config.write('[dummy_section]\n')
+                config.write(f.read().replace('%', '%%'))
+                config.seek(0, os.SEEK_SET)
+
+                cp = ConfigParser.SafeConfigParser()
+                cp.readfp(config)
+
+                return dict(cp.items('dummy_section'))
+        finally:
+            if f:
+                f.close()
+
+
+#############################################################################################
+# Main logic here
+#############################################################################################
+if __name__ == '__main__':
+    import argparse
+    import os
+    import sys
+
+    PROG_ENV_VAR='PROG_NAME'
+
+    def createParser(progName=os.environ[PROG_ENV_VAR] if PROG_ENV_VAR in os.environ else None):
+        # create the top-level parser
+        parser = argparse.ArgumentParser(progName if progName else None)
+        parser.add_argument("-t", "--template", metavar="TEMPLATE_FILE", required=True, help="The template to expand")
+        parser.add_argument("-o", "--out", metavar="OUTPUT_FILE", required=True, help="The output file to create")
+        parser.add_argument("-i", "--identifier", metavar="VAR_IDENTIFIER", required=False, help="The variable identifier.  The default is the '@' symbol.")
+        var_group = parser.add_mutually_exclusive_group(required=True)
+        var_group.add_argument("-v", "--var", metavar="VAR=VALUE", nargs="+", action="append")
+        var_group.add_argument("-f", "--var-file", metavar="VAR_FILE")
+
+        return parser
+    
+    def processArgs(args):
+        if args.identifier is None:
+            args.identifier = Templates.DEFAULT_IDENTIFIER
+        
+        # if args.template:
+        if not os.path.isfile(args.template):
+            print("ERROR: cannot find file '%s'" % args.template)
+            return 1
+
+        if args.var is None:
+            # Then we are going by file
+            if not os.path.isfile(args.var_file):
+                print("ERROR: cannot find file '%s'" % args.var_file)
+                return 1
+            try:
+                args.var = Templates.loadPropertyFile(args.var_file)
+            except Exception as e:
+                print("ERROR while loading variables file: %s" % e.message)
+                return 2
+
+            print("Expanding template %s using var file: %s" % (args.template, args.var_file))
+            args.var_file=None
+        else:
+            # Then we are going with vars
+            vars = { }
+            # args.var is a list of an list of string
+            for props in args.var:
+                for prop in props:
+                    try:
+                        name, value = prop.split('=', 1)
+                        vars[name] = value
+                    except:
+                        print("ERROR while parsing variable: %s" % prop)
+                        return 3
+            args.var = vars
+            print("Expanding template %s using the specified variables" % args.template)
+
+        try:
+            Templates.mergeToFile(args.template, args.out, args.var, varIdentifier=args.identifier)
+            print("Output file generated: %s" % args.out)
+            return 0
+        except Exception as e:
+            print("ERROR while expanding template: %s" % e.message)
+            return 4
+    #
+    # Parse args
+    #
+    parser = createParser()
+    args = parser.parse_args()
+    print("")
+    rc = processArgs(args)
+    print("")
+    sys.exit(rc)

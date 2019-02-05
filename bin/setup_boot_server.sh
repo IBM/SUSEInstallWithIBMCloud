@@ -46,21 +46,25 @@ yum install -y epel-release
 yum install -y jq
 
 #
+# Setup some variables
+#
+PY_DIR="${THIS_DIR}/py"
+
+#
 # Setup python
 #
 # Update pip first
 pip install --upgrade pip
 # Install some python modules
-pip install SoftLayer
-pip install pyyaml
-pip install aenum
-pip install yq
+pip install -r ${PY_DIR}/requirements.txt
+# pip install SoftLayer
+# pip install pyyaml
+# pip install aenum
+# pip install yq
 
 #
-# Setup some variables
+# Setup some more variables now that yq is setup.
 #
-PY_DIR="py"
-
 TFTPDIR="$(yq -r '.conf.tftp_boot_dir' "${CONFIG_FILE}")"
 [ $? -ne 0 ] && echo "ERROR: Failed to read TFTP boot directory from the config yaml file." && exit 1
 HTTPDIR="$(yq -r '.conf.http_root_dir' "${CONFIG_FILE}")"
@@ -113,13 +117,13 @@ fi
 #
 # Create the config files for downloading the SUSE ISO images
 #
-${PYTHON} ${THIS_DIR}/${PY_DIR}/generateConfig.py --genDir "${GEN_DIR}" --config "${CONFIG_FILE}" --scripts download
+${PYTHON} ${PY_DIR}/generateConfig.py --genDir "${GEN_DIR}" --config "${CONFIG_FILE}" --scripts download
 [ $? -ne 0 ] && echo "Error while generating download scripts" && exit 1
 
 #
 # Create the config files for TFTP server config
 #
-${PYTHON} ${THIS_DIR}/${PY_DIR}/generateConfig.py  --genDir "${GEN_DIR}" --config "${CONFIG_FILE}" --scripts tftp
+${PYTHON} ${PY_DIR}/generateConfig.py  --genDir "${GEN_DIR}" --config "${CONFIG_FILE}" --scripts tftp
 [ $? -ne 0 ] && echo "Error while generating the TFTP config files" && exit 1
 
 #

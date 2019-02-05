@@ -11,6 +11,12 @@ REQ_MACHINE_FIELDS = ['tag','image','yast_template']
 class Config:
     'Class to load and read from image and machine configuration'
 
+    VLAN_ADMIN = 'admin' 
+    VLAN_PUB_API = 'public_api' 
+    VLAN_CLOUD_SDN = 'cloud_sdn' 
+    VLAN_STORAGE_REPL = 'storage_repl' 
+    VLAN_STORAGE_CLIENT = 'storage_client'
+
     #
     # Validate dictionary object
     #
@@ -33,13 +39,23 @@ class Config:
         self.httpRootDir = data['conf']['http_root_dir']
 
         # Read data from the 'vlan' section
-        if 'vlan' not in data or ('name' not in data['vlan'] and 'id' not in data['vlan']):
+        if 'vlans' not in data:
+            print(data)
             raise Exception("No VLAN information found in config.")
-        # if 'name' not in data['vlan'] and 'id' not in data['vlan']
-        if 'id' in data['vlan']:
-            self.vlanIdOrName = data['vlan']['id']
-        elif 'name' in data['vlan']:
-            self.vlanIdOrName = data['vlan']['name']
+
+        self.vlanIdOrName = { }
+
+        # vlanNames = [self.VLAN_ADMIN, self.VLAN_PUB_API, self.VLAN_CLOUD_SDN, self.VLAN_STORAGE_REPL, self.VLAN_STORAGE_CLIENT]
+        # for vlan in vlanNames:
+        for vlan in [self.VLAN_ADMIN, self.VLAN_PUB_API, self.VLAN_CLOUD_SDN, self.VLAN_STORAGE_REPL, self.VLAN_STORAGE_CLIENT]:
+            if vlan not in data['vlans']:
+                raise Exception("No VLAN information for vlan '%s'." % vlan)
+            elif 'name' not in data['vlans'][vlan] and 'id' not in data['vlans'][vlan]:
+                raise Exception("VLAN information for vlan '%s' needs to have either the 'name' or 'id'." % vlan)
+            elif 'id' in data['vlans'][vlan]:
+                self.vlanIdOrName[vlan]= data['vlans'][vlan]['id']
+            else: #if 'name' in data['vlan']:
+                self.vlanIdOrName[vlan]= data['vlans'][vlan]['name']
 
         # Check if the 'images' and 'machines' sections are there in the config
         if 'images' not in data:
@@ -79,6 +95,9 @@ class Config:
                 vars[objectName+"_"+k] = item[k]
 
             Templates.mergeToFile(self.templatesDir + template, outFileMask.format(item[filenameProp]), vars )
+    
+    def getHttpRootDir(self):
+        return self.httpRootDir
     #
     # Get available image names
     #
@@ -146,13 +165,13 @@ class Config:
         return True if machine and 'post_install_scripts' in machine else False
     
     def generateDownloadScripts(self, genDir):
-        self.expandTemplates(genDir, 'tftp/download_image.sh', genDir +"/download_image_{}.sh", 'name', self.images, 'image', self.baseVars )
+        self.expandTemplates(genDir, 'tftp/download_image.sh.template', genDir +"/download_image_{}.sh", 'name', self.images, 'image', self.baseVars )
     
     def generateConfigForTFTP(self, genDir):
         self.expandTemplates(genDir, 'tftp/pxelinux_cfg_default_for_image.txt', genDir +"/default_for_{}", 'name', self.images, 'image', self.baseVars)
         self.expandTemplates(genDir, 'tftp/boot_msg_for_image.txt', genDir +"/boot_msg_for_{}", 'name', self.images, 'image', self.baseVars)
-        self.expandTemplates(genDir, 'tftp/setup_tftp_for_image.sh', genDir +"/setup_tftp_for_{}.sh", 'name', self.images, 'image', self.baseVars)
-        Templates.mergeToFile(self.templatesDir + 'tftp/mount_image.sh', genDir + '/mount_image.sh', { })
+        self.expandTemplates(genDir, 'tftp/setup_tftp_for_image.sh.template', genDir +"/setup_tftp_for_{}.sh", 'name', self.images, 'image', self.baseVars)
+        Templates.mergeToFile(self.templatesDir + 'tftp/mount_image.sh.template', genDir + '/mount_image.sh', { })
 
     def generateDhcpSubnetEntryText(self, vars):
         return Templates.mergeToString(self.templatesDir + 'dhcp/dhcp_subnet_template.txt',vars)
@@ -162,7 +181,8 @@ class Config:
 
     def generateAutoyastFile(self, autoyastTemplate, autoyastOutFilename, vars):
         outFile = "%s/autoyast/%s" % (self.httpRootDir, autoyastOutFilename)
-        Templates.mergeToFile(self.yastTemplatesDir + autoyastTemplate, outFile, vars)
+        fullAutoyastTemplate = self.yastTemplatesDir + autoyastTemplate if self.yastTemplatesDir.endswith('/') else self.yastTemplatesDir + '/' + autoyastTemplate
+        Templates.mergeToFile(fullAutoyastTemplate, outFile, vars)
         return outFile
     
 # Reboot baremetal:

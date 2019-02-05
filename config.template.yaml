@@ -2,39 +2,51 @@
 conf:
   tftp_boot_dir: /var/lib/tftpboot
   http_root_dir: /var/www/html
-vlan: # One of two below are needed, either VLAN name of VLAN id
-  #SAP Cloud
-    name: Admin
-    #id: 1234567
+#
+# For each VLAN either the name or id is needed. There are 5 VLANs: 
+#  'admin', 'public_api', 'cloud_sdn', 'storage_repl', 'storage_client'
+# For each vlan you can specify either the name or id. For example:
+#
+# vlans:
+#   admin:
+#     name: 'Admin'
+#     id: 1234567
+#
+vlans:
+  admin:
+    id: @admin_vlan_id@
+  public_api:
+    id: @public_api_vlan_id@
+  cloud_sdn:
+    id: @cloud_sdn_vlan_id@
+  storage_repl:
+    id: @storage_repl_vlan_id@
+  storage_client:
+    id: @storage_client_vlan_id@
+
 images:
   - name: SLE12_SP3
     title: SUSE Linux Enterprise Server 12 - SP3
     file_url: http://myserver.com/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso
-    #md5_url: http://myserver.com/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso.md5    # optional, either md5_url or md5_must be specified
-    md5_value: 633537da81d270a9548272dfe1fdd20d                                    # optional, either md5_url or md5_must be specified
+    #md5_url: http://myserver.com/SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso.md5          # optional, either md5_url or md5_must be specified
+    md5_value: 633537da81d270a9548272dfe1fdd20d                                   # optional, either md5_url or md5_must be specified
     filename: SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso
-    save_dir: /root/images
+    save_dir: /root/images                                                         # Directory specified here must exist on bootserver
     mount_point: SLE12_SP3                                                         # appended to the value of 'http_root_dir'
   - name: SLE12_SP2
     title: SUSE Linux Enterprise Server 12 - SP2
     file_url: http://myserver.com/SLE-12-SP2-Server-DVD-x86_64-GM-DVD1.iso
-    #md5_url: http://myserver.com/SLE-12-SP2-Server-DVD-x86_64-GM-DVD1.iso.md5    # optional, either md5_url or md5_must be specified
-    md5_value: fe01223a08b2d293da2f940658af8168                                    # optional, either md5_url or md5_must be specified
+    #md5_url: http://myserver.com/SLE-12-SP2-Server-DVD-x86_64-GM-DVD1.iso.md5          # optional, either md5_url or md5_must be specified
+    md5_value: fe01223a08b2d293da2f940658af8168                                   # optional, either md5_url or md5_must be specified
     filename: SLE-12-SP2-Server-DVD-x86_64-GM-DVD1.iso
-    save_dir: /root/images
+    save_dir: /root/images                                                         # Directory specified here must exist on bootserver
     mount_point: SLE12_SP2                                                         # appended to the value of 'http_root_dir'
 
 machines:
   - tag: kvm
     image: SLE12_SP3
     yast_template: autoyast_kvmhost.xml     # In the <root_dir>/yast_templates folder
-    post_install_scripts:
-      - /scripts/kvm_post_inst1.sh
-      - /scripts/kvm_post_inst2.sh
   - tag: compute
     image: SLE12_SP2
     yast_template: autoyast_compute.xml     # In the <root_dir>/yast_templates folder
-    post_install_scripts:
-      - /scripts/compute_post_inst1.sh
-      - /scripts/compute_post_inst2.sh
   
