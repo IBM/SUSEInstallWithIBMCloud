@@ -135,6 +135,8 @@ class Templates:
           # Another comment
           PROP2=value2
         """
+        f = None
+        
         try:
             with open(propFile) as f:
                 config = StringIO.StringIO()
