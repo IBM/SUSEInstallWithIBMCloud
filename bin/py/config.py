@@ -181,7 +181,8 @@ class Config:
 
     def generateAutoyastFile(self, autoyastTemplate, autoyastOutFilename, vars):
         outFile = "%s/autoyast/%s" % (self.httpRootDir, autoyastOutFilename)
-        Templates.mergeToFile(self.yastTemplatesDir + autoyastTemplate, outFile, vars)
+        fullAutoyastTemplate = self.yastTemplatesDir + autoyastTemplate if self.yastTemplatesDir.endswith('/') else self.yastTemplatesDir + '/' + autoyastTemplate
+        Templates.mergeToFile(fullAutoyastTemplate, outFile, vars)
         return outFile
     
 # Reboot baremetal:

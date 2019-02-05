@@ -101,6 +101,8 @@ class Templates:
         if extraVars:
             varsToUse.update(extraVars)
     
+        fpIn = None
+        
         try:
             with open(template, 'r') as fpIn:
                 for line in fpIn:
