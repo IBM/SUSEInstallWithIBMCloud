@@ -11,12 +11,6 @@ REQ_MACHINE_FIELDS = ['tag','image','yast_template']
 class Config:
     'Class to load and read from image and machine configuration'
 
-    VLAN_ADMIN = 'admin' 
-    VLAN_PUB_API = 'public_api' 
-    VLAN_CLOUD_SDN = 'cloud_sdn' 
-    VLAN_STORAGE_REPL = 'storage_repl' 
-    VLAN_STORAGE_CLIENT = 'storage_client'
-
     SUBNET_ADMIN = 'admin'
     SUBNET_PUB_FLOATING = 'public_floating'
     SUBNET_PUB_API = 'public_api'
