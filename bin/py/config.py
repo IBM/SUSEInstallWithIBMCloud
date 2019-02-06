@@ -11,11 +11,12 @@ REQ_MACHINE_FIELDS = ['tag','image','yast_template']
 class Config:
     'Class to load and read from image and machine configuration'
 
-    VLAN_ADMIN = 'admin' 
-    VLAN_PUB_API = 'public_api' 
-    VLAN_CLOUD_SDN = 'cloud_sdn' 
-    VLAN_STORAGE_REPL = 'storage_repl' 
-    VLAN_STORAGE_CLIENT = 'storage_client'
+    SUBNET_ADMIN = 'admin'
+    SUBNET_PUB_FLOATING = 'public_floating'
+    SUBNET_PUB_API = 'public_api'
+    SUBNET_CLOUD_SDN = 'cloud_sdn'
+    SUBNET_STORAGE_REPL = 'storage_repl'
+    SUBNET_STORAGE_CLIENT = 'storage_client'
 
     #
     # Validate dictionary object
@@ -38,25 +39,18 @@ class Config:
             raise Exception("Property 'conf.http_root_dir' missing from the config file.")
         self.httpRootDir = data['conf']['http_root_dir']
 
-        # Read data from the 'vlan' section
-        if 'vlans' not in data:
+        # Read data from the subnets section:
+        if 'subnets' not in data:
             print(data)
-            raise Exception("No VLAN information found in config.")
+            raise Exception("No Subnet information found in config.")
 
-        self.vlanIdOrName = { }
-
-        # vlanNames = [self.VLAN_ADMIN, self.VLAN_PUB_API, self.VLAN_CLOUD_SDN, self.VLAN_STORAGE_REPL, self.VLAN_STORAGE_CLIENT]
-        # for vlan in vlanNames:
-        for vlan in [self.VLAN_ADMIN, self.VLAN_PUB_API, self.VLAN_CLOUD_SDN, self.VLAN_STORAGE_REPL, self.VLAN_STORAGE_CLIENT]:
-            if vlan not in data['vlans']:
-                raise Exception("No VLAN information for vlan '%s'." % vlan)
-            elif 'name' not in data['vlans'][vlan] and 'id' not in data['vlans'][vlan]:
-                raise Exception("VLAN information for vlan '%s' needs to have either the 'name' or 'id'." % vlan)
-            elif 'id' in data['vlans'][vlan]:
-                self.vlanIdOrName[vlan]= data['vlans'][vlan]['id']
-            else: #if 'name' in data['vlan']:
-                self.vlanIdOrName[vlan]= data['vlans'][vlan]['name']
-
+        self.subnet = {}
+        for subnet in [self.SUBNET_ADMIN, self.SUBNET_PUB_FLOATING, self.SUBNET_PUB_API, self.SUBNET_CLOUD_SDN, self.SUBNET_STORAGE_REPL, self.SUBNET_STORAGE_CLIENT]:
+            if subnet not in data['subnets']:
+                raise Exception("No subnet information for subnet '%s'." % subnet)
+            else:
+                self.subnet[subnet] = data['subnets'][subnet]
+        
         # Check if the 'images' and 'machines' sections are there in the config
         if 'images' not in data:
             raise Exception("No 'images' section found in config: %s" % filename )

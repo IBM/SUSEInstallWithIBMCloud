@@ -7,7 +7,7 @@ import SoftLayer
 from BaseHTTPServer import HTTPServer
 
 from utils import get_ip, ipToHex, restartDHCP, restartDevice
-from softlayer_helper import SoftLayerHelper, Device, Subnet, VLAN
+from softlayer_helper import SoftLayerHelper, Device, Subnet, VLAN, ObjectNotFoundException
 from dhcp_conf_helper import DhcpConfEntry, DhcpConfHelper
 from templates import Templates
 from config import Config
@@ -102,10 +102,11 @@ def preProcessArgs(args):
     # First retrieve the mentioned devices and also any existing host entries in the dhcp config
     #
     args.slHelper = SoftLayerHelper()
-    args.vlan = args.slHelper.getVlan(args.cfg.vlanIdOrName[Config.VLAN_ADMIN], subnetType=Subnet.Type.Portable, addressSpace=Subnet.AddressSpace.Private)
 
-    if not args.vlan:
-        print("\nERROR: Cannot find matching VLAN based on the configuration.")
+    try:
+        args.adminSubnet = args.slHelper.getSubnet(args.cfg.subnet[Config.SUBNET_ADMIN])
+    except ObjectNotFoundException:
+        print("\nERROR: Cannot find admin subnet as specified in configuration file. (subnet id=%s)" % args.cfg.subnet[Config.SUBNET_ADMIN])
         sys.exit(1)
 
     #
@@ -182,6 +183,20 @@ def getMachineConfForDevice(cfg, device):
         print("\nERROR: Unable to find machine configuration for tag: %s.  Device id=%s and device tags=%s" % (deviceTag, device.id, ', '.join(device.tags)))
         sys.exit(1)
     return machineConf
+
+#
+# Function: subnetToDict
+#
+def subnetToDict(prefix, subnet):
+    """
+    Generate a dict from a subnet using the specified prefix.
+    """
+    return {
+        "%s_subnet" % prefix: subnet.network,
+        "%s_subnet_cidr" % prefix: subnet.cidr,
+        "%s_subnet_mask" % prefix: subnet.netmask,
+        "%s_subnet_gateway" % prefix: subnet.gateway
+    } 
 
 #
 # Function: generateAutoyastFile
@@ -384,15 +399,15 @@ def prepareHosts(args):
         for hostname in hostnames:
             device = deviceInfo[hostname]
             # We get the info on the reserved ip and its subnet
-            ipAddr,subnet = args.slHelper.findIpInfoByNoteInVlan(args.vlan, hostname)
+            ipAddr = args.slHelper.findIpByNoteInSubnet(args.adminSubnet.id, hostname)
             # Get the machine conf (image to use, etc)
             machineConf = getMachineConfForDevice(args.cfg, device)
             # Get the IP address value from the IP address
             ip = ipAddr.value if ipAddr else None
-            if ip and subnet:
-                print("Hostname '%s': Reserved IP is %s and subnet %s/%s" % (hostname, ip, subnet.network, subnet.cidr))
+            if ip and args.adminSubnet:
+                print("Hostname '%s': Reserved IP is %s and subnet %s/%s" % (hostname, ip, args.adminSubnet.network, subnet.cidr))
                 # Add the host's subnet if not already in the DHCP config
-                if addDhcpSubnetEntry(args.cfg, args.bootServerIP, subnet, args.dhcpSharedNet):
+                if addDhcpSubnetEntry(args.cfg, args.bootServerIP, args.adminSubnet, args.dhcpSharedNet):
                     changesMade += 1
 
                 # Next we check if the host entry needs to be created.
@@ -400,7 +415,7 @@ def prepareHosts(args):
                     changesMade += 1
                 print("")
             # Always generate the autoyast file since it may have changed
-            generateAutoyastFile(args.cfg, args.bootServerIP, args.bootServerListenPort, ip, subnet, device, machineConf, args.unencryptedPassword)
+            generateAutoyastFile(args.cfg, args.bootServerIP, args.bootServerListenPort, ip, args.adminSubnet, device, machineConf, args.unencryptedPassword)
 
         if changesMade > 0:
             if args.dhcpConf.save():

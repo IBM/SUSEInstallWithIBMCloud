@@ -3,26 +3,16 @@ conf:
   tftp_boot_dir: /var/lib/tftpboot
   http_root_dir: /var/www/html
 #
-# For each VLAN either the name or id is needed. There are 5 VLANs: 
-#  'admin', 'public_api', 'cloud_sdn', 'storage_repl', 'storage_client'
-# For each vlan you can specify either the name or id. For example:
+# For each subnet we need the subnet id. There are 6 needed subnets: 
+#  'admin', 'public_floating', 'public_api', 'cloud_sdn', 'storage_repl', 'storage_client'
 #
-# vlans:
-#   admin:
-#     name: 'Admin'
-#     id: 1234567
-#
-vlans:
-  admin:
-    id: @admin_vlan_id@
-  public_api:
-    id: @public_api_vlan_id@
-  cloud_sdn:
-    id: @cloud_sdn_vlan_id@
-  storage_repl:
-    id: @storage_repl_vlan_id@
-  storage_client:
-    id: @storage_client_vlan_id@
+subnets:
+  admin: @admin_subnet@
+  public_floating: @public_floating_subnet@
+  public_api: @public_api_subnet@
+  cloud_sdn: @cloud_sdn_subnet@
+  storage_repl: @storage_repl_subnet@
+  storage_client: @storage_client_subnet@
 
 images:
   - name: SLE12_SP3
