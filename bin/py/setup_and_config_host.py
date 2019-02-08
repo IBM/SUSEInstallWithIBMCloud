@@ -53,6 +53,10 @@ def create_parser(progName=os.environ[PROG_ENV_VAR] if PROG_ENV_VAR in os.enviro
     group_apply.add_argument("--listenOnly", action="store_true", help="Only start the listener (in case there was a failure)")
     parser_apply.set_defaults(func=installHosts)
 
+    # create the parser for the "resetDhcp" command
+    parser_resetDhcp = subparsers.add_parser('reset-dhcp', help='Reset the DHCP service')
+    parser_resetDhcp.set_defaults(func=resetDhcp)
+
     return parser
 
 #
@@ -109,12 +113,8 @@ def preProcessArgs(args):
         print("\nERROR: Cannot find admin subnet as specified in configuration file. (subnet id=%s)" % args.cfg.subnet[Config.SUBNET_ADMIN])
         sys.exit(1)
 
-    #
-    # Setup the DHCP conf helper and related variables
-    #
-    args.dhcpConf = DhcpConfHelper('/etc/dhcp/dhcpd.conf')
-    args.dhcpSharedNet = args.dhcpConf.getRootEntry().getFirstChild(DhcpConfEntry.Type.Shared_Network)
-    args.dhcpGroup = args.dhcpConf.getRootEntry().findChild(DhcpConfEntry.Type.Group)
+    # Load the DHCP conf into the args
+    loadDhcpConf(args)
 
     if args.dhcpSharedNet is None or args.dhcpGroup is None:
         print("\nERROR: The dhcpd.conf file does have the structure expected. Run the configuration on the bootserver again.")
@@ -122,6 +122,14 @@ def preProcessArgs(args):
 
     args.hosts = args.dhcpGroup.getChildren(DhcpConfEntry.Type.Host)
     return args
+
+def loadDhcpConf(args):
+    #
+    # Setup the DHCP conf helper and related variables
+    #
+    args.dhcpConf = DhcpConfHelper(Config.DHCP_CONF)
+    args.dhcpSharedNet = args.dhcpConf.getRootEntry().getFirstChild(DhcpConfEntry.Type.Shared_Network)
+    args.dhcpGroup = args.dhcpConf.getRootEntry().findChild(DhcpConfEntry.Type.Group)
 
 #
 # Function: runListener
@@ -405,7 +413,7 @@ def prepareHosts(args):
             # Get the IP address value from the IP address
             ip = ipAddr.value if ipAddr else None
             if ip and args.adminSubnet:
-                print("Hostname '%s': Reserved IP is %s and subnet %s/%s" % (hostname, ip, args.adminSubnet.network, subnet.cidr))
+                print("Hostname '%s': Reserved IP is %s and subnet %s/%s" % (hostname, ip, args.adminSubnet.network, args.adminSubnet.cidr))
                 # Add the host's subnet if not already in the DHCP config
                 if addDhcpSubnetEntry(args.cfg, args.bootServerIP, args.adminSubnet, args.dhcpSharedNet):
                     changesMade += 1
@@ -487,6 +495,36 @@ def installHosts(args):
     else:
         print("ERROR: No hosts configured in DHCP configution.")
         return 1
+
+def resetDhcp(args):
+    """
+    Reset the DHCP file to the default settings.
+    """
+
+    # Reset the DHCP conf file
+    args.cfg.generateInitialDhcpConf()
+    print("DHCP config file reset.")
+    # Reload it int the args (to find the two sections).
+    loadDhcpConf(args)
+
+    # First get the subnet for the boot server and make sure it is in the DHCP config
+    mySubnet = args.slHelper.getSubnetForIP(args.bootServerIP)
+
+    if mySubnet is None:
+        print("ERROR: Cannot identify the subnet for the boot server at IP %s" % args.bootServerIP)
+        return 1
+
+    # Add the boot server's subnet if not already in the DHCP config
+    if addDhcpSubnetEntry(args.cfg, args.bootServerIP, mySubnet, args.dhcpSharedNet):
+        print("Successfully added subnet entry for bootserver's subnet")
+        if args.dhcpConf.save():
+            print( "Changes saved successfully in :" + args.dhcpConf.getFilename())
+            return 0
+        else:
+            return 1
+    else:
+        print("Bootserver's subnet already in file.")
+        return 0
 
 
 #############################################################################################
