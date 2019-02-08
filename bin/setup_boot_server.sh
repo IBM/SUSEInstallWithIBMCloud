@@ -108,7 +108,7 @@ EOF
 #
 # Initialize the dhcp conf with the subnet info of the boot server.
 #
-${PYTHON} ${PY_DIR}/setup_and_config_host.sh -c "${CONFIG_FILE}" reset-dhcp
+${PYTHON} ${PY_DIR}/setup_and_config_host.py -c "${CONFIG_FILE}" reset-dhcp
 
 #
 # Check if TFTP dir exists.  If not, then create it
