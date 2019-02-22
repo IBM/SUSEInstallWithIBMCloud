@@ -6,12 +6,13 @@ import cgi
 import threading
 import sys, traceback
 
+from config import Config
 from utils import restartDHCP
 from dhcp_conf_helper import DhcpConfEntry, DhcpConfHelper
 
 # This class will handles any incoming requests comming from the bare metals installing SUSE
 class NotificationHandler(BaseHTTPRequestHandler):
-    _dhcpConfFilename = '/etc/dhcp/dhcpd.conf'
+    _dhcpConfFilename = Config.DHCP_CONF
     _server = None
 
     @classmethod

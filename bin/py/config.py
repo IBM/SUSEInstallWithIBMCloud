@@ -11,6 +11,8 @@ REQ_MACHINE_FIELDS = ['tag','image','yast_template']
 class Config:
     'Class to load and read from image and machine configuration'
 
+    DHCP_CONF = '/etc/dhcp/dhcpd.conf'
+
     SUBNET_ADMIN = 'admin'
     SUBNET_PUB_FLOATING = 'public_floating'
     SUBNET_PUB_API = 'public_api'
@@ -166,6 +168,9 @@ class Config:
         self.expandTemplates(genDir, 'tftp/boot_msg_for_image.txt', genDir +"/boot_msg_for_{}", 'name', self.images, 'image', self.baseVars)
         self.expandTemplates(genDir, 'tftp/setup_tftp_for_image.sh.template', genDir +"/setup_tftp_for_{}.sh", 'name', self.images, 'image', self.baseVars)
         Templates.mergeToFile(self.templatesDir + 'tftp/mount_image.sh.template', genDir + '/mount_image.sh', { })
+
+    def generateInitialDhcpConf(self):
+        Templates.mergeToFile(self.templatesDir + 'dhcp/dhcpd.conf.blank', self.DHCP_CONF, { } )
 
     def generateDhcpSubnetEntryText(self, vars):
         return Templates.mergeToString(self.templatesDir + 'dhcp/dhcp_subnet_template.txt',vars)
